@@ -16,6 +16,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getToken } from '../../../../utils/authorization';
 import Loader from '../../../../components/Loader';
 import CustomAlert from '../../../../components/Alert';
+import axios from 'axios';
 
 interface AdminDetails {
     username: string;
@@ -46,13 +47,14 @@ function EditAdminstrator() {
     const { id } = useParams<{ id: string }>();
     const [adminDetails, setAdminDetails] = useState<AdminDetails>(formData);
     const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>('');
+    const [alertType, setAlertType] = useState<'error' | 'warning' | 'info' | 'success'>('success');
+    const [alertMessage, setAlertMessage] = useState<string>('');
     const [showAlert, setShowAlert] = useState<boolean>(false);
+    const token = getToken('userToken');
 
     const fetchAdminDetails = async () => {
         try {
             setLoading(true);
-            const token = getToken('userToken');
             const res = await fetch(`${process.env.REACT_APP_BASE_SERVER_URL}/owner/administrator_router/get/${id}`, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -63,7 +65,7 @@ function EditAdminstrator() {
 
             if (!res.ok) {
                 setLoading(false);
-                setError(data.detail);
+                setAlertMessage(data.detail);
                 setShowAlert(true);
                 return;
             }
@@ -83,16 +85,10 @@ function EditAdminstrator() {
             setLoading(false);
         } catch (error) {
             setLoading(false);
-            setError('Could not fetch admin details, Please try again!');
+            setAlertMessage('Could not fetch admin details, Please try again!');
             setShowAlert(true);
         }
     };
-
-    useEffect(() => {
-        if (id) {
-            fetchAdminDetails();
-        }
-    }, [id]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
         const { name, value } = e.target;
@@ -106,7 +102,6 @@ function EditAdminstrator() {
         e.preventDefault();
         try {
             setLoading(true);
-            const token = getToken('userToken');
             const res = await fetch(
                 `${process.env.REACT_APP_BASE_SERVER_URL}/owner/administrator_router/update/${id}`,
                 {
@@ -132,7 +127,7 @@ function EditAdminstrator() {
 
             if (!res.ok) {
                 setLoading(false);
-                setError(data.detail);
+                setAlertMessage(data.detail);
                 setShowAlert(true);
                 return;
             }
@@ -142,20 +137,56 @@ function EditAdminstrator() {
             navigate('/apps/adminstrators');
         } catch (error) {
             setLoading(false);
-            setError('Could not update admin, Please try with correct details!');
+            setAlertMessage('Could not update admin, Please try with correct details!');
             setShowAlert(true);
         }
     };
 
-    const handleCancel = () => {
-        window.history.back();
+    const handleDelete = async () => {
+        try {
+            setLoading(true);
+            const res = await axios.delete(
+                `${process.env.REACT_APP_BASE_SERVER_URL}/owner/administrator_router/delete/${id}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (res.status !== 200) {
+                setLoading(false);
+                setAlertType('error');
+                setAlertMessage('Could not delete!');
+                setShowAlert(true);
+                return;
+            }
+            setAlertType('success');
+            setAlertMessage('Admin deleted successfully!');
+            setShowAlert(true);
+            setLoading(false);
+            navigate('/apps/administrators');
+        } catch (error) {
+            console.error('There was a problem with the delete operation:', error);
+        }
     };
+
+    const handleCancel = () => {
+        navigate('/apps/adminstrators');
+    };
+
+    useEffect(() => {
+        if (id) {
+            fetchAdminDetails();
+        }
+    }, [id]);
 
     useEffect(() => {
         if (showAlert) {
             const timer = setTimeout(() => {
                 setShowAlert(false);
-                setError('');
+                setAlertMessage('');
             }, 3000);
 
             return () => clearTimeout(timer);
@@ -171,7 +202,7 @@ function EditAdminstrator() {
                     </Typography>
                 </Box>
                 {loading && <Loader />}
-                {showAlert && <CustomAlert alert="error" message={error} />}
+                {showAlert && <CustomAlert alert={alertType} message={alertMessage} />}
                 <form onSubmit={handleSubmit}>
                     <Grid sx={{ p: 2.5 }} container rowSpacing={1.5} columnSpacing={4}>
                         {/* Render form fields with values from adminDetails */}
@@ -395,7 +426,12 @@ function EditAdminstrator() {
                                 Update
                             </Button>
 
-                            <Button sx={{ minWidth: '6rem' }} type="button" variant="contained" color="error">
+                            <Button
+                                onClick={handleDelete}
+                                sx={{ minWidth: '6rem' }}
+                                type="button"
+                                variant="contained"
+                                color="error">
                                 Delete
                             </Button>
                         </Grid>
