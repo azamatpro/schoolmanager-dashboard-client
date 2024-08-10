@@ -17,6 +17,11 @@ import { getToken } from '../../../../utils/authorization';
 import Loader from '../../../../components/Loader';
 import CustomAlert from '../../../../components/Alert';
 import axios from 'axios';
+import CustomPopup from '../../../../components/popup';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../redux/store';
+import { useDispatch } from 'react-redux';
+import { setAgree } from '../../../../redux/popup/popupSlice';
 
 interface AdminDetails {
     username: string;
@@ -28,6 +33,17 @@ interface AdminDetails {
     gender: string;
     education: string;
     schoolId: string;
+}
+
+interface AlertState {
+    type: 'error' | 'warning' | 'info' | 'success';
+    message: string;
+    show: boolean;
+}
+interface DialogState {
+    open: boolean;
+    message: string;
+    persona: string;
 }
 
 const formData = {
@@ -47,9 +63,11 @@ function EditAdminstrator() {
     const { id } = useParams<{ id: string }>();
     const [adminDetails, setAdminDetails] = useState<AdminDetails>(formData);
     const [loading, setLoading] = useState<boolean>(false);
-    const [alertType, setAlertType] = useState<'error' | 'warning' | 'info' | 'success'>('success');
-    const [alertMessage, setAlertMessage] = useState<string>('');
-    const [showAlert, setShowAlert] = useState<boolean>(false);
+    const [alert, setAlert] = useState<AlertState>({ type: 'success', message: '', show: false });
+    const [dialog, setDialog] = useState<DialogState>({ open: false, message: '', persona: '' });
+    const { agree } = useSelector((state: RootState) => state.popup);
+    const dispatch = useDispatch();
+
     const token = getToken('userToken');
 
     const fetchAdminDetails = async () => {
@@ -65,8 +83,7 @@ function EditAdminstrator() {
 
             if (!res.ok) {
                 setLoading(false);
-                setAlertMessage(data.detail);
-                setShowAlert(true);
+                setAlert({ type: 'error', message: data.detail, show: true });
                 return;
             }
 
@@ -85,8 +102,7 @@ function EditAdminstrator() {
             setLoading(false);
         } catch (error) {
             setLoading(false);
-            setAlertMessage('Could not fetch admin details, Please try again!');
-            setShowAlert(true);
+            setAlert({ type: 'error', message: 'Could not fetch admin details, Please try again!', show: true });
         }
     };
 
@@ -127,8 +143,7 @@ function EditAdminstrator() {
 
             if (!res.ok) {
                 setLoading(false);
-                setAlertMessage(data.detail);
-                setShowAlert(true);
+                setAlert({ type: 'error', message: data.detail, show: true });
                 return;
             }
 
@@ -137,42 +152,23 @@ function EditAdminstrator() {
             navigate('/apps/adminstrators');
         } catch (error) {
             setLoading(false);
-            setAlertMessage('Could not update admin, Please try with correct details!');
-            setShowAlert(true);
+            setAlert({
+                type: 'error',
+                message: 'Could not update admin, Please try with correct details!',
+                show: true,
+            });
         }
     };
 
     const handleDelete = async () => {
-        try {
-            setLoading(true);
-            const res = await axios.delete(
-                `${process.env.REACT_APP_BASE_SERVER_URL}/owner/administrator_router/delete/${id}`,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (res.status !== 200) {
-                setLoading(false);
-                setAlertType('error');
-                setAlertMessage('Could not delete!');
-                setShowAlert(true);
-                return;
-            }
-            setAlertType('success');
-            setAlertMessage('Admin deleted successfully!');
-            setShowAlert(true);
-            setLoading(false);
-            navigate('/apps/administrators');
-        } catch (error) {
-            console.error('There was a problem with the delete operation:', error);
-        }
+        setDialog({
+            open: true,
+            message: `Are you sure to delete the ${adminDetails.fullName}?`,
+            persona: 'administrator',
+        });
     };
 
-    const handleCancel = () => {
+    const handleBack = () => {
         navigate('/apps/adminstrators');
     };
 
@@ -183,15 +179,47 @@ function EditAdminstrator() {
     }, [id]);
 
     useEffect(() => {
-        if (showAlert) {
+        if (agree) {
+            const deletePersona = async () => {
+                try {
+                    setLoading(true);
+                    const res = await axios.delete(
+                        `${process.env.REACT_APP_BASE_SERVER_URL}/owner/administrator_router/delete/${id}`,
+                        {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                Authorization: `Bearer ${token}`,
+                            },
+                        }
+                    );
+
+                    if (res.status === 200) {
+                        setAlert({ type: 'success', message: 'Admin deleted successfully!', show: true });
+                        navigate('/apps/adminstrators');
+                    } else {
+                        setAlert({ type: 'error', message: 'Could not delete!', show: true });
+                    }
+                } catch (error) {
+                    setAlert({ type: 'error', message: 'Error occurred during deletion!', show: true });
+                } finally {
+                    setLoading(false);
+                    dispatch(setAgree(false));
+                }
+            };
+
+            deletePersona();
+        }
+    }, [agree, dispatch, id, navigate, token]);
+
+    useEffect(() => {
+        if (alert.show) {
             const timer = setTimeout(() => {
-                setShowAlert(false);
-                setAlertMessage('');
+                setAlert((prevAlert) => ({ ...prevAlert, show: false }));
             }, 3000);
 
             return () => clearTimeout(timer);
         }
-    }, [showAlert]);
+    }, [alert.show]);
 
     return (
         <Container maxWidth={'xl'}>
@@ -202,7 +230,8 @@ function EditAdminstrator() {
                     </Typography>
                 </Box>
                 {loading && <Loader />}
-                {showAlert && <CustomAlert alert={alertType} message={alertMessage} />}
+                {alert.show && <CustomAlert alert={alert.type} message={alert.message} />}
+                {dialog.open && <CustomPopup dialog={dialog} setDialog={setDialog} />}
                 <form onSubmit={handleSubmit}>
                     <Grid sx={{ p: 2.5 }} container rowSpacing={1.5} columnSpacing={4}>
                         {/* Render form fields with values from adminDetails */}
@@ -319,6 +348,31 @@ function EditAdminstrator() {
                             </FormControl>
                         </Grid>
 
+                        {/* Gender */}
+                        <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                                <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>Gender</FormLabel>
+                                <Select
+                                    name="gender"
+                                    value={adminDetails.gender}
+                                    onChange={handleChange}
+                                    displayEmpty
+                                    required
+                                    sx={{
+                                        height: '40px',
+                                        boxSizing: 'border-box',
+                                    }}>
+                                    <MenuItem value="" disabled>
+                                        Select Gender
+                                    </MenuItem>
+                                    <MenuItem value="male">Male</MenuItem>
+                                    <MenuItem value="female">Female</MenuItem>
+                                    <MenuItem value="other">Other</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+
+                        {/* Date of Birth */}
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                                 <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -326,12 +380,14 @@ function EditAdminstrator() {
                                 </FormLabel>
                                 <TextField
                                     name="dateOfBirth"
-                                    type="date"
                                     fullWidth
+                                    type="date"
                                     value={adminDetails.dateOfBirth}
                                     onChange={handleChange}
                                     required
-                                    placeholder="Update Date of Birth"
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
                                     InputProps={{
                                         sx: {
                                             height: '40px',
@@ -342,32 +398,8 @@ function EditAdminstrator() {
                                 />
                             </FormControl>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <FormControl fullWidth>
-                                <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>Gender</FormLabel>
-                                <Select
-                                    name="gender"
-                                    value={adminDetails.gender}
-                                    onChange={handleChange}
-                                    required
-                                    sx={{ height: '40px' }}
-                                    displayEmpty
-                                    inputProps={{
-                                        sx: {
-                                            height: '100%',
-                                            padding: '0 15px',
-                                            boxSizing: 'border-box',
-                                        },
-                                    }}>
-                                    <MenuItem value="" disabled>
-                                        Select Gender
-                                    </MenuItem>
-                                    <MenuItem value="male">Male</MenuItem>
-                                    <MenuItem value="female">Female</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Grid>
 
+                        {/* Education */}
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                                 <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -391,6 +423,7 @@ function EditAdminstrator() {
                             </FormControl>
                         </Grid>
 
+                        {/* School ID */}
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                                 <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -413,25 +446,26 @@ function EditAdminstrator() {
                                 />
                             </FormControl>
                         </Grid>
-                        <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'end', alignItems: 'end' }}>
-                            <Button
-                                sx={{ minWidth: '6rem' }}
-                                onClick={handleCancel}
-                                type="button"
-                                variant="outlined"
-                                color="error">
-                                Back
-                            </Button>
-                            <Button sx={{ mx: 2, minWidth: '6rem' }} type="submit" variant="contained" color="primary">
+
+                        {/* Actions */}
+                        <Grid item xs={12} sx={{ mt: 2 }}>
+                            <Button type="submit" variant="contained" sx={{ mr: 2 }}>
                                 Update
                             </Button>
-
+                            <Button onClick={handleBack} variant="outlined" color="secondary">
+                                Cancel
+                            </Button>
                             <Button
                                 onClick={handleDelete}
-                                sx={{ minWidth: '6rem' }}
-                                type="button"
                                 variant="contained"
-                                color="error">
+                                sx={{
+                                    ml: 2,
+                                    bgcolor: '#e63946', // Background color
+                                    color: '#ffffff', // Text color (optional)
+                                    '&:hover': {
+                                        bgcolor: '#d62839', // Darker shade for hover effect (optional)
+                                    },
+                                }}>
                                 Delete
                             </Button>
                         </Grid>

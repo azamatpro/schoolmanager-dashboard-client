@@ -64,7 +64,11 @@ const AdministratorsList = () => {
             }
 
             const data = res.data;
-            setAdministrators(data.data);
+            const modifiedData = data.data.map((val: Administrator) => ({
+                ...val,
+                created_at: new Date(val.created_at).toLocaleDateString(),
+            }));
+            setAdministrators(modifiedData);
             setTotalCount(data.total_count);
             setLoading(false);
         } catch (error) {
@@ -142,6 +146,7 @@ const AdministratorsList = () => {
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}
+                sx={{ display: 'flex', justifyContent: 'end', alignItems: 'center' }}
                 onPageChange={(event, newPage) => setPage(newPage)}
                 onRowsPerPageChange={(event) => {
                     setRowsPerPage(+event.target.value);
