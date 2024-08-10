@@ -12,6 +12,7 @@ import {
     Select,
     SelectChangeEvent,
 } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getToken } from '../../../../utils/authorization';
 import Loader from '../../../../components/Loader';
@@ -448,24 +449,21 @@ function EditAdminstrator() {
                         </Grid>
 
                         {/* Actions */}
-                        <Grid item xs={12} sx={{ mt: 2 }}>
-                            <Button type="submit" variant="contained" sx={{ mr: 2 }}>
+                        <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'end', alignItems: 'end' }}>
+                            <Button onClick={handleBack} sx={{ width: '7rem' }} variant="outlined" color="secondary">
+                                Back
+                            </Button>
+
+                            <Button type="submit" variant="outlined" sx={{ mx: 2, width: '7rem' }}>
                                 Update
                             </Button>
-                            <Button onClick={handleBack} variant="outlined" color="secondary">
-                                Cancel
-                            </Button>
+
                             <Button
                                 onClick={handleDelete}
-                                variant="contained"
-                                sx={{
-                                    ml: 2,
-                                    bgcolor: '#e63946', // Background color
-                                    color: '#ffffff', // Text color (optional)
-                                    '&:hover': {
-                                        bgcolor: '#d62839', // Darker shade for hover effect (optional)
-                                    },
-                                }}>
+                                sx={{ width: '7rem' }}
+                                color="error"
+                                variant="outlined"
+                                startIcon={<DeleteIcon />}>
                                 Delete
                             </Button>
                         </Grid>

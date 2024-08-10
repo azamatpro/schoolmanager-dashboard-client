@@ -339,11 +339,16 @@ function AddAdminstrator() {
                             </FormControl>
                         </Grid>
 
-                        <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: 'end', alignItems: 'end' }}>
-                            <Button sx={{ mr: 2 }} type="submit" variant="contained" color="primary">
+                        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'end', alignItems: 'end' }}>
+                            <Button sx={{ mr: 2, width: '7rem' }} type="submit" variant="outlined" color="primary">
                                 Submit
                             </Button>
-                            <Button onClick={handleCancel} type="button" variant="contained" color="error">
+                            <Button
+                                onClick={handleCancel}
+                                sx={{ width: '7rem' }}
+                                type="button"
+                                variant="outlined"
+                                color="error">
                                 Cancel
                             </Button>
                         </Grid>

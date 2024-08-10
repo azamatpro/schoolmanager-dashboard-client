@@ -93,7 +93,7 @@ const AdministratorsList = () => {
     }, [showAlert]);
 
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Paper sx={{ width: '100%', overflow: 'hidden', mt: 4 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, mx: 2 }}>
                 <Typography variant="h6" component="h6" noWrap>
                     Administrators
