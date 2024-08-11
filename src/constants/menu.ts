@@ -23,6 +23,13 @@ const MENU_ITEMS: MenuItemTypes[] = [
         url: '/dashboard',
     },
     {
+        key: 'schools-list',
+        label: 'Schools',
+        isTitle: false,
+        icon: 'fe-map',
+        url: '/apps/schools',
+    },
+    {
         key: 'adminstrators-list',
         label: 'Adminstrators',
         isTitle: false,

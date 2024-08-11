@@ -11,6 +11,7 @@ import {
     MenuItem,
     Select,
     SelectChangeEvent,
+    Paper,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -223,7 +224,7 @@ function EditAdminstrator() {
     }, [alert.show]);
 
     return (
-        <Container maxWidth={'xl'}>
+        <Paper sx={{ width: '100%' }}>
             <Box sx={{ mt: 4, borderRadius: 1.5, bgcolor: '#ffffff' }}>
                 <Box sx={{ p: 2.5, borderBottom: '1px solid lightgray' }}>
                     <Typography sx={{ fontSize: '1rem' }} variant="h6">
@@ -470,7 +471,7 @@ function EditAdminstrator() {
                     </Grid>
                 </form>
             </Box>
-        </Container>
+        </Paper>
     );
 }
 

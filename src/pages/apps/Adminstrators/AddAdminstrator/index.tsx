@@ -11,6 +11,7 @@ import {
     MenuItem,
     Select,
     SelectChangeEvent,
+    Paper,
 } from '@mui/material';
 import { getToken } from '../../../../utils/authorization';
 import Loader from '../../../../components/Loader';
@@ -121,7 +122,7 @@ function AddAdminstrator() {
     }, [showAlert]);
 
     return (
-        <Container maxWidth={'xl'}>
+        <Paper sx={{ width: '100%' }}>
             <Box sx={{ mt: 4, borderRadius: 1.5, bgcolor: '#ffffff' }}>
                 <Box sx={{ p: 2.5, borderBottom: '1px solid lightgray' }}>
                     <Typography sx={{ fontSize: '1rem' }} variant="h6">
@@ -355,7 +356,7 @@ function AddAdminstrator() {
                     </Grid>
                 </form>
             </Box>
-        </Container>
+        </Paper>
     );
 }
 

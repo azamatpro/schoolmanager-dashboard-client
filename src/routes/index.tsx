@@ -32,6 +32,9 @@ const DashBoard1 = React.lazy(() => import('../pages/dashboards/DashBoard1/'));
 const AddAdminstrator = React.lazy(() => import('../pages/apps/Adminstrators/AddAdminstrator'));
 const EditAdminstrator = React.lazy(() => import('../pages/apps/Adminstrators/EditAdminstrator'));
 const AdminstratorsList = React.lazy(() => import('../pages/apps/Adminstrators/AdminstratorsList'));
+const AddSchool = React.lazy(() => import('../pages/apps/Schools/AddSchool'));
+const EditSchool = React.lazy(() => import('../pages/apps/Schools/EditSchool'));
+const SchoolsList = React.lazy(() => import('../pages/apps/Schools/SchoolsList'));
 const AddTeacher = React.lazy(() => import('../pages/apps/Teachers/AddTeacher'));
 const EditTeacher = React.lazy(() => import('../pages/apps/Teachers/EditTeacher'));
 const TeachersList = React.lazy(() => import('../pages/apps/Teachers/TeachersList'));
@@ -214,6 +217,18 @@ const AllRoutes = () => {
                 {
                     path: 'apps',
                     children: [
+                        {
+                            path: 'schools',
+                            element: <LoadComponent component={SchoolsList} />,
+                        },
+                        {
+                            path: 'schools/add',
+                            element: <LoadComponent component={AddSchool} />,
+                        },
+                        {
+                            path: 'schools/edit/:id',
+                            element: <LoadComponent component={EditSchool} />,
+                        },
                         {
                             path: 'adminstrators',
                             element: <LoadComponent component={AdminstratorsList} />,

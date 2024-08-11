@@ -21,6 +21,7 @@ import logoDark from '../../assets/images/logo-dark.png';
 import logoLight from '../../assets/images/logo-light.png';
 import { RootState } from '../../redux/store';
 import { useSelector } from 'react-redux';
+import SchoolDropdown from '../../components/topbar/SchoolDropdown';
 
 type TopbarProps = {
     openLeftMenuCallBack: () => void;
@@ -97,6 +98,10 @@ const Topbar = ({ openLeftMenuCallBack, containerClass }: TopbarProps) => {
                         </button>
                     </li>
                 </ul>
+
+                <div className="topnav-menu-left" style={{}}>
+                    <SchoolDropdown />
+                </div>
 
                 <div className="clearfix"></div>
             </div>
