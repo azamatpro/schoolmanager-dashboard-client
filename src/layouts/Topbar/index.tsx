@@ -50,6 +50,14 @@ const Topbar = ({ openLeftMenuCallBack, containerClass }: TopbarProps) => {
         <div className="navbar-custom">
             <div className={containerClass}>
                 <ul className="list-unstyled topnav-menu float-end mb-0">
+                    <li className="dropdown d-inline-block">
+                        <SchoolDropdown />
+                    </li>
+
+                    {/* <li className="d-lg-block">
+                        <TopbarSearch options={searchOptions} />
+                    </li> */}
+
                     <li className="d-none d-lg-block">
                         <TopbarSearch options={searchOptions} />
                     </li>
@@ -98,10 +106,6 @@ const Topbar = ({ openLeftMenuCallBack, containerClass }: TopbarProps) => {
                         </button>
                     </li>
                 </ul>
-
-                <div className="topnav-menu-left" style={{}}>
-                    <SchoolDropdown />
-                </div>
 
                 <div className="clearfix"></div>
             </div>

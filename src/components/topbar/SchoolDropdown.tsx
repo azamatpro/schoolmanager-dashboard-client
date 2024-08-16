@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useState } from 'react';
-import { Box, FormControl, FormLabel, MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import Form from 'react-bootstrap/Form';
+import { SelectChangeEvent } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 
@@ -40,33 +41,14 @@ function SchoolDropdown() {
     };
 
     return (
-        <Box sx={{}}>
-            <FormControl>
-                <Select
-                    name="school"
-                    value={schoolDetails.id}
-                    onChange={(event: SelectChangeEvent) => handleChange(event)}
-                    required
-                    sx={{ height: '40px' }}
-                    displayEmpty
-                    inputProps={{
-                        sx: {
-                            height: '100%',
-                            padding: '0 15px',
-                            boxSizing: 'border-box',
-                        },
-                    }}>
-                    <MenuItem value="" disabled>
-                        Select School
-                    </MenuItem>
-                    {schools.map((school, id) => (
-                        <MenuItem key={id} value={school.id}>
-                            {school.name}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-        </Box>
+        <div style={{ width: '10rem', marginTop: '1rem', marginLeft: '0' }}>
+            <Form.Select>
+                <option>Schools</option>
+                {schools.map((school, i) => (
+                    <option key={i}>{school.name}</option>
+                ))}
+            </Form.Select>
+        </div>
     );
 }
 
