@@ -54,10 +54,6 @@ const Topbar = ({ openLeftMenuCallBack, containerClass }: TopbarProps) => {
                         <SchoolDropdown />
                     </li>
 
-                    {/* <li className="d-lg-block">
-                        <TopbarSearch options={searchOptions} />
-                    </li> */}
-
                     <li className="d-none d-lg-block">
                         <TopbarSearch options={searchOptions} />
                     </li>

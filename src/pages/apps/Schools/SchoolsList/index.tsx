@@ -15,22 +15,39 @@ import CustomAlert from '../../../../components/Alert';
 import { getToken } from '../../../../utils/authorization';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
-import { fetchSchoolsFailure, fetchSchoolsStart, fetchSchoolsSuccess } from '../../../../redux/schools/SchoolSlice';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../redux/store';
+
+export type School = {
+    id: string;
+    name: string;
+    phone_number: string;
+    address: string;
+    owner_id: string;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+};
+interface SchoolsState {
+    loading: boolean;
+    error: string | null;
+    schools: School[];
+}
 
 const SchoolsList = () => {
     const navigate = useNavigate();
-    const { schools, loading, error } = useSelector((state: RootState) => state.schools);
-    const dispatch = useDispatch();
+    const [schools, setSchools] = useState<SchoolsState>({
+        loading: false,
+        error: null,
+        schools: [],
+    });
     const [showAlert, setShowAlert] = useState<boolean>(false);
     const [page, setPage] = useState<number>(0);
     const [rowsPerPage, setRowsPerPage] = useState<number>(10);
     const [totalCount, setTotalCount] = useState<number>(0);
 
     const fetchSchools = useCallback(async () => {
+        setSchools((prevState) => ({ ...prevState, loading: true }));
         try {
-            dispatch(fetchSchoolsStart());
             const token = getToken('userToken');
             const params = new URLSearchParams({
                 page: (page + 1).toString(),
@@ -48,17 +65,17 @@ const SchoolsList = () => {
             );
 
             if (res.status !== 200) {
-                setShowAlert(true);
-                dispatch(fetchSchoolsFailure('Something went wrong, Could not get schools!'));
-                return;
+                throw new Error('Something went wrong, Could not get schools!');
             }
 
             const data = res.data;
-            dispatch(fetchSchoolsSuccess(data.data));
             setTotalCount(data.total_count);
+            setSchools({ loading: false, error: null, schools: data.data });
         } catch (error) {
-            dispatch(fetchSchoolsFailure('Something went wrong, Could not get schools!'));
             setShowAlert(true);
+            const errorMessage = 'Something went wrong, Could not get schools!';
+            setShowAlert(true);
+            setSchools((prevState) => ({ ...prevState, loading: false, error: errorMessage }));
         }
     }, [page, rowsPerPage]);
 
@@ -86,8 +103,8 @@ const SchoolsList = () => {
                     <Link to="/apps/schools/add">+ Add new</Link>
                 </Button>
             </Box>
-            {loading && <Loader />}
-            {showAlert && <CustomAlert alert="error" message={error} />}
+            {schools.loading && <Loader />}
+            {showAlert && <CustomAlert alert="error" message={schools.error} />}
             <TableContainer sx={{ maxHeight: 440 }}>
                 <Table stickyHeader aria-label="sticky table">
                     <TableHead>
@@ -98,9 +115,9 @@ const SchoolsList = () => {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {schools.map((school) => (
+                        {schools.schools.map((school, id) => (
                             <TableRow
-                                key={school.id}
+                                key={id}
                                 sx={{
                                     '&:hover': {
                                         cursor: 'pointer',
@@ -128,7 +145,7 @@ const SchoolsList = () => {
                 onPageChange={(event, newPage) => setPage(newPage)}
                 onRowsPerPageChange={(event) => {
                     setRowsPerPage(+event.target.value);
-                    setPage(0); // Reset to first page
+                    setPage(0);
                 }}
             />
         </Paper>

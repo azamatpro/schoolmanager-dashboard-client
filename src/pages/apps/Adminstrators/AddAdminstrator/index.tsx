@@ -19,6 +19,18 @@ import CustomAlert from '../../../../components/Alert';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+interface SchoolDetails {
+    id: string;
+    name: string;
+    phone_number: string;
+    address: string;
+    owner_id: string;
+    isDeleted: boolean;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+}
+
 interface AdminDetails {
     username: string;
     password: string;
@@ -49,6 +61,7 @@ function AddAdminstrator() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>('');
     const [showAlert, setShowAlert] = useState<boolean>(false);
+    const [schools, setSchools] = useState<SchoolDetails[]>([]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
         const { name, value } = e.target;
@@ -109,6 +122,30 @@ function AddAdminstrator() {
     const handleCancel = () => {
         setAdminDetails(formData);
     };
+
+    const fetchSchools = async () => {
+        try {
+            const token = getToken('userToken');
+            const res = await axios.get(`${process.env.REACT_APP_BASE_SERVER_URL}/owner/school_router/get_multi`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (res.status !== 200) {
+                console.log('Error fetching schools');
+                return;
+            }
+            setSchools([...res.data.data]);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchSchools();
+    }, []);
 
     useEffect(() => {
         if (showAlert) {
@@ -275,24 +312,31 @@ function AddAdminstrator() {
 
                         <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
-                                <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>
-                                    School Id
-                                </FormLabel>
-                                <TextField
-                                    name="schoolId"
-                                    fullWidth
-                                    value={adminDetails.schoolId}
+                                <FormLabel sx={{ mb: 0.5, fontSize: '0.9rem', fontWeight: 'bold' }}>Schools</FormLabel>
+                                <Select
+                                    name="school"
+                                    value={adminDetails.schoolId} // Assuming adminDetails.school holds the selected school
                                     onChange={handleChange}
                                     required
-                                    placeholder="Enter School Id"
-                                    InputProps={{
+                                    sx={{ height: '40px' }}
+                                    displayEmpty
+                                    inputProps={{
                                         sx: {
-                                            height: '40px',
-                                            padding: 0,
+                                            height: '100%',
+                                            padding: '0 15px',
                                             boxSizing: 'border-box',
                                         },
-                                    }}
-                                />
+                                    }}>
+                                    <MenuItem value="" disabled>
+                                        Select School
+                                    </MenuItem>
+
+                                    {schools.map((school, id) => (
+                                        <MenuItem key={id} value={school.name}>
+                                            {school.name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
                             </FormControl>
                         </Grid>
 

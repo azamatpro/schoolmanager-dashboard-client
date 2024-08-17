@@ -1,7 +1,9 @@
-import React, { ChangeEvent, useState } from 'react';
-import Form from 'react-bootstrap/Form';
-import { SelectChangeEvent } from '@mui/material';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import Dropdown from 'react-bootstrap/Dropdown';
+import axios from 'axios';
+import { getToken } from '../../utils/authorization';
+import { useDispatch, useSelector } from 'react-redux';
+import { setSchool } from '../../redux/school/SchoolSlice';
 import { RootState } from '../../redux/store';
 
 interface SchoolDetails {
@@ -16,9 +18,9 @@ interface SchoolDetails {
     deletedAt: string | null;
 }
 
-const formData: SchoolDetails = {
-    id: '',
-    name: '',
+const allSchools: SchoolDetails = {
+    id: '0',
+    name: 'All Schools',
     phone_number: '',
     address: '',
     owner_id: '',
@@ -29,26 +31,65 @@ const formData: SchoolDetails = {
 };
 
 function SchoolDropdown() {
-    const { schools } = useSelector((state: RootState) => state.schools);
-    const [schoolDetails, setSchoolDetails] = useState<SchoolDetails>(formData);
+    const dispatch = useDispatch();
+    const [schools, setSchools] = useState<SchoolDetails[]>([]);
+    const { school } = useSelector((state: RootState) => state.school);
+    const [selectedSchool, setSelectedSchool] = useState<SchoolDetails>(school || allSchools);
 
-    const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
-        const { name, value } = e.target;
-        setSchoolDetails((prevDetails) => ({
-            ...prevDetails,
-            [name]: value,
-        }));
+    const fetchSchools = async () => {
+        try {
+            const token = getToken('userToken');
+            const res = await axios.get(`${process.env.REACT_APP_BASE_SERVER_URL}/owner/school_router/get_multi`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (res.status !== 200) {
+                console.log('Error fetching schools');
+                return;
+            }
+            setSchools([allSchools, ...res.data.data]);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchSchools();
+    }, []);
+
+    const handleSelect = (school: SchoolDetails) => {
+        setSelectedSchool(school);
+        dispatch(setSchool(school));
     };
 
     return (
-        <div style={{ width: '10rem', marginTop: '1rem', marginLeft: '0' }}>
-            <Form.Select>
-                <option>Schools</option>
-                {schools.map((school, i) => (
-                    <option key={i}>{school.name}</option>
+        <Dropdown>
+            <Dropdown.Toggle
+                id="dropdown-basic"
+                style={{
+                    backgroundColor: '#e2e6ea',
+                    border: 'none',
+                    color: '#323a46',
+                    outline: 'none',
+                    marginTop: '1rem',
+                    width: '10rem',
+                    textAlign: 'start',
+                    marginRight: '2rem',
+                }}>
+                {selectedSchool.name}
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu>
+                {schools.map((school) => (
+                    <Dropdown.Item key={school.id} onClick={() => handleSelect(school)}>
+                        {school.name}
+                    </Dropdown.Item>
                 ))}
-            </Form.Select>
-        </div>
+            </Dropdown.Menu>
+        </Dropdown>
     );
 }
 
